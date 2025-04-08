@@ -27,7 +27,8 @@ namespace lab_2._1.Migrations
                         name: "FK_Categories_Categories_ParentCategoryId",
                         column: x => x.ParentCategoryId,
                         principalTable: "Categories",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -51,7 +52,9 @@ namespace lab_2._1.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Username = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RegisteredAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -67,9 +70,10 @@ namespace lab_2._1.Migrations
                     Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    CategoryId = table.Column<int>(type: "int", nullable: true)
+                    CategoryId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -79,7 +83,7 @@ namespace lab_2._1.Migrations
                         column: x => x.CategoryId,
                         principalTable: "Categories",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Ads_Users_UserId",
                         column: x => x.UserId,
@@ -89,7 +93,7 @@ namespace lab_2._1.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AdTag",
+                name: "AdTags",
                 columns: table => new
                 {
                     AdsId = table.Column<int>(type: "int", nullable: false),
@@ -97,15 +101,15 @@ namespace lab_2._1.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AdTag", x => new { x.AdsId, x.TagsId });
+                    table.PrimaryKey("PK_AdTags", x => new { x.AdsId, x.TagsId });
                     table.ForeignKey(
-                        name: "FK_AdTag_Ads_AdsId",
+                        name: "FK_AdTags_Ads_AdsId",
                         column: x => x.AdsId,
                         principalTable: "Ads",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_AdTag_Tags_TagsId",
+                        name: "FK_AdTags_Tags_TagsId",
                         column: x => x.TagsId,
                         principalTable: "Tags",
                         principalColumn: "Id",
@@ -123,8 +127,8 @@ namespace lab_2._1.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AdTag_TagsId",
-                table: "AdTag",
+                name: "IX_AdTags_TagsId",
+                table: "AdTags",
                 column: "TagsId");
 
             migrationBuilder.CreateIndex(
@@ -137,7 +141,7 @@ namespace lab_2._1.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AdTag");
+                name: "AdTags");
 
             migrationBuilder.DropTable(
                 name: "Ads");

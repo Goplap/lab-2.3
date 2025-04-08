@@ -1,73 +1,90 @@
-﻿using BulletinBoard.DAL;
+﻿using BulletinBoard.BLL.Interfaces;
 using BulletinBoard.DAL.Models;
-using BulletinBoard.BLL.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using lab_2._1.DAL.Interfaces;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace BulletinBoard.BLL.Services
 {
     public class AdService : IAdService
     {
-        private readonly BulletinBoardContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AdService(BulletinBoardContext context)
+        public AdService(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IEnumerable<Ad>> GetAllAdsAsync()
         {
-            return await _context.Ads.Include(a => a.User)
-                                     .Include(a => a.Category)
-                                     .Include(a => a.Tags)
-                                     .ToListAsync();
+            return await _unitOfWork.Ads.GetAllWithDetailsAsync();
         }
 
         public async Task<Ad> GetAdByIdAsync(int id)
         {
-            return await _context.Ads.Include(a => a.User)
-                                     .Include(a => a.Category)
-                                     .Include(a => a.Tags)
-                                     .FirstOrDefaultAsync(a => a.Id == id);
+            return await _unitOfWork.Ads.GetAdWithDetailsAsync(id);
         }
 
-        public async Task CreateAdAsync(Ad ad)
+        public async Task<IEnumerable<Ad>> GetAdsByUserIdAsync(int userId)
         {
-            // Перевіряємо, чи існує категорія
-            var category = await _context.Categories.FindAsync(ad.CategoryId);
+            return await _unitOfWork.Ads.GetAdsByUserIdAsync(userId);
+        }
 
+        public async Task<IEnumerable<Ad>> GetAdsByCategoryIdAsync(int categoryId)
+        {
+            return await _unitOfWork.Ads.GetAdsByCategoryIdAsync(categoryId);
+        }
+
+        public async Task<Ad> CreateAdAsync(Ad ad)
+        {
+            if (ad == null)
+                throw new ArgumentNullException(nameof(ad), "Оголошення не може бути null.");
+
+            // Перевірка існування категорії
+            var category = await _unitOfWork.Categories.GetByIdAsync(ad.CategoryId);
             if (category == null)
             {
-                throw new InvalidOperationException($"❌ Категорія з ID {ad.CategoryId} не існує! Додайте категорію перед створенням оголошення.");
+                throw new InvalidOperationException($"Категорія з ID {ad.CategoryId} не існує! Додайте категорію перед створенням оголошення.");
             }
 
-            // Додаємо оголошення, якщо категорія існує
-            _context.Ads.Add(ad);
-            await _context.SaveChangesAsync();
+            // Перевірка існування користувача
+            var user = await _unitOfWork.Users.GetByIdAsync(ad.UserId);
+            if (user == null)
+            {
+                throw new InvalidOperationException($"Користувач з ID {ad.UserId} не існує! Створіть користувача перед додаванням оголошення.");
+            }
+
+            // Встановлення дефолтних значень
+            ad.CreatedAt = DateTime.UtcNow;
+            ad.IsActive = true;
+
+            await _unitOfWork.Ads.AddAsync(ad);
+            await _unitOfWork.SaveChangesAsync();
+
+            return ad;
         }
 
         public async Task UpdateAdAsync(Ad ad)
         {
-            var category = await _context.Categories.FindAsync(ad.CategoryId);
+            if (ad == null)
+                throw new ArgumentNullException(nameof(ad), "Оголошення не може бути null.");
+
+            // Перевірка існування категорії
+            var category = await _unitOfWork.Categories.GetByIdAsync(ad.CategoryId);
             if (category == null)
             {
-                throw new InvalidOperationException($"❌ Категорія з ID {ad.CategoryId} не існує! Оновлення неможливе.");
+                throw new InvalidOperationException($"Категорія з ID {ad.CategoryId} не існує! Оновлення неможливе.");
             }
 
-            _context.Ads.Update(ad);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Ads.UpdateAsync(ad);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteAdAsync(int id)
         {
-            var ad = await _context.Ads.FindAsync(id);
-            if (ad != null)
-            {
-                _context.Ads.Remove(ad);
-                await _context.SaveChangesAsync();
-            }
+            await _unitOfWork.Ads.RemoveByIdAsync(id);
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

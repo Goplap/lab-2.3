@@ -1,6 +1,4 @@
 ﻿using BulletinBoard.DAL.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace BulletinBoard.BLL.Interfaces
 {
@@ -8,7 +6,8 @@ namespace BulletinBoard.BLL.Interfaces
     {
         Task<IEnumerable<User>> GetAllUsersAsync();
         Task<User> GetUserByIdAsync(int id);
-        Task CreateUserAsync(User user);
+        Task<User> GetUserByEmailAsync(string email);
+        Task<User> CreateUserAsync(User user);  // Corrected return type
         Task UpdateUserAsync(User user);
         Task DeleteUserAsync(int id);
     }

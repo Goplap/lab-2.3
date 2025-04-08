@@ -1,5 +1,5 @@
-﻿using BulletinBoard.DAL.Interfaces;
-using BulletinBoard.DAL.Repositories;
+﻿using BulletinBoard.DAL.Repositories;
+using lab_2._1.DAL.Interfaces;
 using System;
 using System.Threading.Tasks;
 

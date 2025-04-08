@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace lab_2._1.Migrations
 {
     [DbContext(typeof(BulletinBoardContext))]
-    [Migration("20250330195624_InitialCreate")]
+    [Migration("20250408192528_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -37,7 +37,7 @@ namespace lab_2._1.Migrations
 
                     b.HasIndex("TagsId");
 
-                    b.ToTable("AdTag");
+                    b.ToTable("AdTags", (string)null);
                 });
 
             modelBuilder.Entity("BulletinBoard.DAL.Models.Ad", b =>
@@ -65,6 +65,9 @@ namespace lab_2._1.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -132,9 +135,15 @@ namespace lab_2._1.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -166,7 +175,7 @@ namespace lab_2._1.Migrations
                     b.HasOne("BulletinBoard.DAL.Models.Category", "Category")
                         .WithMany("Ads")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BulletinBoard.DAL.Models.User", "User")
@@ -184,7 +193,8 @@ namespace lab_2._1.Migrations
                 {
                     b.HasOne("BulletinBoard.DAL.Models.Category", "ParentCategory")
                         .WithMany("SubCategories")
-                        .HasForeignKey("ParentCategoryId");
+                        .HasForeignKey("ParentCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ParentCategory");
                 });

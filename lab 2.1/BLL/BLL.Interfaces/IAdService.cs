@@ -8,7 +8,9 @@ namespace BulletinBoard.BLL.Interfaces
     {
         Task<IEnumerable<Ad>> GetAllAdsAsync();
         Task<Ad> GetAdByIdAsync(int id);
-        Task CreateAdAsync(Ad ad);
+        Task<IEnumerable<Ad>> GetAdsByUserIdAsync(int userId);
+        Task<IEnumerable<Ad>> GetAdsByCategoryIdAsync(int categoryId);
+        Task<Ad> CreateAdAsync(Ad ad);
         Task UpdateAdAsync(Ad ad);
         Task DeleteAdAsync(int id);
     }

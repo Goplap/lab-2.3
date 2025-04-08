@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BulletinBoard.DAL.Models
 {
@@ -10,10 +12,12 @@ namespace BulletinBoard.DAL.Models
         [Required, MaxLength(100)]
         public string Name { get; set; }
 
+        [ForeignKey("ParentCategory")]
         public int? ParentCategoryId { get; set; }
-        public Category ParentCategory { get; set; }
-        public ICollection<Category> SubCategories { get; set; } = new List<Category>();
 
-        public ICollection<Ad> Ads { get; set; } = new List<Ad>();
+        // Навігаційні властивості
+        public virtual Category ParentCategory { get; set; }
+        public virtual ICollection<Category> SubCategories { get; set; } = new List<Category>();
+        public virtual ICollection<Ad> Ads { get; set; } = new List<Ad>();
     }
 }

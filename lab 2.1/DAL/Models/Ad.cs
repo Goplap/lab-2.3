@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BulletinBoard.DAL.Models
 {
@@ -16,16 +18,20 @@ namespace BulletinBoard.DAL.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public DateTime? UpdatedAt { get; set; }
+
         public bool IsActive { get; set; } = true;
 
+        // Зовнішні ключі
         [ForeignKey("User")]
         public int UserId { get; set; }
-        public User User { get; set; }
 
         [ForeignKey("Category")]
         public int CategoryId { get; set; }
-        public Category Category { get; set; }
 
-        public ICollection<Tag> Tags { get; set; } = new List<Tag>();
+        // Навігаційні властивості
+        public virtual User User { get; set; }
+        public virtual Category Category { get; set; }
+        public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();
     }
 }

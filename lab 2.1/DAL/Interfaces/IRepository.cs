@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace BulletinBoard.DAL.Interfaces
+namespace lab_2._1.DAL.Interfaces
 {
     public interface IRepository<TEntity> where TEntity : class
     {

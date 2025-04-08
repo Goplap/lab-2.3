@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace BulletinBoard.DAL.Interfaces
+namespace lab_2._1.DAL.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {

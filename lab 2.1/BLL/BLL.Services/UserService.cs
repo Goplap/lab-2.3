@@ -1,57 +1,64 @@
-﻿using BulletinBoard.DAL;
+﻿using BulletinBoard.BLL.Interfaces;
 using BulletinBoard.DAL.Models;
 using BulletinBoard.BLL.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using lab_2._1.DAL.Interfaces;
 
 namespace BulletinBoard.BLL.Services
 {
     public class UserService : IUserService
     {
-        private readonly BulletinBoardContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UserService(BulletinBoardContext context)
+        public UserService(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            return await _context.Users.ToListAsync();
+            return await _unitOfWork.Users.GetAllAsync();
         }
 
         public async Task<User> GetUserByIdAsync(int id)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return await _unitOfWork.Users.GetByIdAsync(id);
         }
 
-        public async Task CreateUserAsync(User user)
+        public async Task<User> GetUserByEmailAsync(string email)
+        {
+            return await _unitOfWork.Users.GetByEmailAsync(email);
+        }
+
+        public async Task<User> CreateUserAsync(User user)
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user), "Користувач не може бути null.");
 
-            user.PasswordHash ??= ""; // Додає порожній рядок, якщо пароль відсутній
+            // Встановлення дефолтного значення для паролю, якщо він не вказаний
+            user.PasswordHash ??= "";
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Users.AddAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            return user;
         }
 
         public async Task UpdateUserAsync(User user)
         {
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
+            if (user == null)
+                throw new ArgumentNullException(nameof(user), "Користувач не може бути null.");
+
+            await _unitOfWork.Users.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteUserAsync(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
-            {
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
-            }
+            await _unitOfWork.Users.RemoveByIdAsync(id);
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

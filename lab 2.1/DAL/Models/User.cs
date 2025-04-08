@@ -17,8 +17,13 @@ namespace BulletinBoard.DAL.Models
         public string Email { get; set; }
 
         [Required]
-        public string PasswordHash { get; set; }
+        public string PasswordHash { get; set; } = string.Empty;
 
-        public ICollection<Ad> Ads { get; set; } = new List<Ad>();
+        public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
+
+        public bool IsActive { get; set; } = true;
+
+        // Навігаційні властивості
+        public virtual ICollection<Ad> Ads { get; set; } = new List<Ad>();
     }
 }

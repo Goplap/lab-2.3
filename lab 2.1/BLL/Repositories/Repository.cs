@@ -1,4 +1,4 @@
-﻿using BulletinBoard.DAL.Interfaces;
+﻿using lab_2._1.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
