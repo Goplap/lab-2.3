@@ -37,8 +37,9 @@ class Program
 
             var userService = services.GetRequiredService<IUserService>();
             var adService = services.GetRequiredService<IAdService>();
+            var categoryService = services.GetRequiredService<ICategoryService>();
 
-            await RunUI(userService, adService);
+            await RunUI(userService, adService, categoryService);
         }
     }
 
@@ -50,17 +51,22 @@ class Program
                     options.UseSqlServer(connectionString));
                 services.AddScoped<IAdService, AdService>();
                 services.AddScoped<IUserService, UserService>();
+                services.AddScoped<ICategoryService, CategoryService>();
             })
             .Build();
 
-    static async Task RunUI(IUserService userService, IAdService adService)
+    static async Task RunUI(IUserService userService, IAdService adService, ICategoryService categoryService)
     {
         while (true)
         {
             Console.WriteLine("\n1. Додати користувача");
             Console.WriteLine("2. Додати оголошення");
             Console.WriteLine("3. Показати всіх користувачів");
-            Console.WriteLine("4. Вийти");
+            Console.WriteLine("4. Показати всі оголошення");
+            Console.WriteLine("5. Редагувати оголошення");
+            Console.WriteLine("6. Видалити оголошення");
+            Console.WriteLine("7. Додати категорію");
+            Console.WriteLine("8. Вийти");
             Console.Write("Ваш вибір: ");
 
             var choice = Console.ReadLine();
@@ -72,7 +78,7 @@ class Program
                     Console.Write("Email: ");
                     string email = Console.ReadLine();
                     await userService.CreateUserAsync(new User { Username = name, Email = email });
-                    Console.WriteLine("Користувач доданий!");
+                    Console.WriteLine("✅ Користувач доданий!");
                     break;
 
                 case "2":
@@ -80,8 +86,31 @@ class Program
                     string title = Console.ReadLine();
                     Console.Write("Текст оголошення: ");
                     string text = Console.ReadLine();
-                    await adService.CreateAdAsync(new Ad { Title = title, Description = text, UserId = 1 }); // ID 1 для тесту
-                    Console.WriteLine("Оголошення додане!");
+                    
+                    Console.Write("Виберіть категорію (ID): ");
+                    if (!int.TryParse(Console.ReadLine(), out int categoryId))
+                    {
+                        Console.WriteLine("❌ Некоректний ID категорії!");
+                        break;
+                    }
+
+                    // Перевіряємо, чи існує категорія
+                    var category = await categoryService.GetCategoryByIdAsync(categoryId);
+                    if (category == null)
+                    {
+                        Console.WriteLine($"❌ Категорія з ID {categoryId} не існує! Додайте категорію перед створенням оголошення.");
+                        break;
+                    }
+
+                    try
+                    {
+                        await adService.CreateAdAsync(new Ad { Title = title, Description = text, UserId = 1, CategoryId = categoryId });
+                        Console.WriteLine("✅ Оголошення додане!");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError("Помилка під час додавання оголошення!", ex);
+                    }
                     break;
 
                 case "3":
@@ -93,10 +122,61 @@ class Program
                     break;
 
                 case "4":
+                    var ads = await adService.GetAllAdsAsync();
+                    foreach (var ad in ads)
+                    {
+                        Console.WriteLine($"ID: {ad.Id}, Заголовок: {ad.Title}, Опис: {ad.Description}, Категорія: {ad.Category?.Name}");
+                    }
+                    break;
+
+                case "5":
+                    Console.Write("Введіть ID оголошення для редагування: ");
+                    if (!int.TryParse(Console.ReadLine(), out int adIdToEdit))
+                    {
+                        Console.WriteLine("❌ Некоректний ID!");
+                        break;
+                    }
+
+                    var adToEdit = await adService.GetAdByIdAsync(adIdToEdit);
+                    if (adToEdit != null)
+                    {
+                        Console.Write("Нова тема оголошення: ");
+                        adToEdit.Title = Console.ReadLine();
+                        Console.Write("Новий текст оголошення: ");
+                        adToEdit.Description = Console.ReadLine();
+                        await adService.UpdateAdAsync(adToEdit);
+                        Console.WriteLine("✅ Оголошення оновлено!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("❌ Оголошення не знайдено!");
+                    }
+                    break;
+
+                case "6":
+                    Console.Write("Введіть ID оголошення для видалення: ");
+                    if (!int.TryParse(Console.ReadLine(), out int adIdToDelete))
+                    {
+                        Console.WriteLine("❌ Некоректний ID!");
+                        break;
+                    }
+
+                    await adService.DeleteAdAsync(adIdToDelete);
+                    Console.WriteLine("✅ Оголошення видалене!");
+                    break;
+
+                case "7":
+                    Console.Write("Введіть назву категорії: ");
+                    string categoryName = Console.ReadLine();
+                    await categoryService.CreateCategoryAsync(new Category { Name = categoryName });
+                    Console.WriteLine("✅ Категорія додана!");
+                    break;
+
+                case "8":
                     return;
 
                 default:
-                    Console.WriteLine("Невірний вибір!");
+                    Console.WriteLine("❌ Невірний вибір!");
                     break;
             }
         }
