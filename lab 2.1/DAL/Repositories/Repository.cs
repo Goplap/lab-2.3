@@ -1,4 +1,5 @@
-﻿using lab_2._1.DAL.Interfaces;
+﻿using BulletinBoard.DAL;
+using lab_2._1.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace BulletinBoard.DAL.Repositories
+namespace lab_2._1.DAL.Repositories
 {
     public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
     {

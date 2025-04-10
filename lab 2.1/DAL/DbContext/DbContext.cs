@@ -30,7 +30,7 @@ namespace BulletinBoard.DAL
                 .HasOne(a => a.Category)
                 .WithMany(c => c.Ads)
                 .HasForeignKey(a => a.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict); // Змінено на Restrict для попередження каскадного видалення
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Налаштування відносин для Category з самою собою (ієрархія)
             modelBuilder.Entity<Category>()

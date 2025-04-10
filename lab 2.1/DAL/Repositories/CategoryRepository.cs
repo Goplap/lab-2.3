@@ -1,10 +1,11 @@
-﻿using BulletinBoard.DAL.Models;
+﻿using BulletinBoard.DAL;
+using BulletinBoard.DAL.Models;
 using lab_2._1.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BulletinBoard.DAL.Repositories
+namespace lab_2._1.DAL.Repositories
 {
     public class CategoryRepository : Repository<Category>, ICategoryRepository
     {

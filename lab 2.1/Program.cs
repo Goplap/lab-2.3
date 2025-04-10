@@ -5,6 +5,7 @@ using BulletinBoard.BLL.Services;
 using BulletinBoard.DAL;
 using BulletinBoard.DAL.Models;
 using lab_2._1.DAL.Interfaces;
+using lab_2._1.DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
