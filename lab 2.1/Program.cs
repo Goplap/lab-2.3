@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using BulletinBoard.BLL.Interfaces;
 using BulletinBoard.BLL.Mappers;
+using BulletinBoard.BLL.Models;
 using BulletinBoard.BLL.Services;
 using BulletinBoard.DAL;
 using BulletinBoard.DAL.Models;
@@ -46,16 +47,25 @@ class Program
         }
     }
 
-    static IHost CreateHost(string connectionString) =>
+    static IHost CreateHost() =>
     Host.CreateDefaultBuilder()
         .ConfigureServices(services =>
         {
+            // Use the connection string from DbContext
+            string connectionString = "Server=localhost\\SQLEXPRESS;Database=BulletinBoardDB;Trusted_Connection=True;TrustServerCertificate=True;";
+
             // Реєстрація DbContext
             services.AddDbContext<BulletinBoardContext>(options =>
                 options.UseSqlServer(connectionString));
 
+            // Реєстрація репозиторіїв
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IAdRepository, AdRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<ITagRepository, TagRepository>();
+
             // Реєстрація UnitOfWork
-            services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Реєстрація мапперів
             services.AddScoped<IMapper<User, UserDto>, UserMapper>();
@@ -174,16 +184,17 @@ class Program
                             break;
                         }
 
-                        // Створюємо оголошення з прив'язкою до поточного користувача
-                        var ad = await adService.CreateAdAsync(new Ad
+                        var adDto = new AdDto
                         {
                             Title = title,
                             Description = text,
                             UserId = currentUser.Id,
                             CategoryId = categoryId
-                        });
+                        };
 
-                        Console.WriteLine($"✅ Оголошення '{title}' додане з ID: {ad.Id}!");
+                        var newAd = await adService.CreateAdAsync(adDto);
+                        Console.WriteLine($"✅ Оголошення '{title}' додане з ID: {newAd.Id}!");
+
                     }
                     catch (Exception ex)
                     {

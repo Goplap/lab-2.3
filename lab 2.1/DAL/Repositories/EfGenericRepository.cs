@@ -1,5 +1,10 @@
 ﻿using BulletinBoard.DAL.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace BulletinBoard.DAL.Repositories
 {
@@ -16,7 +21,6 @@ namespace BulletinBoard.DAL.Repositories
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-            // Простий метод без додаткових зв'язків - як для студентської роботи
             return await _dbSet.ToListAsync();
         }
 
@@ -37,7 +41,6 @@ namespace BulletinBoard.DAL.Repositories
 
         public Task UpdateAsync(T entity)
         {
-            // Примітка: студент може не знати про оптимізацію перевірки стану об'єкта
             _context.Entry(entity).State = EntityState.Modified;
             return Task.CompletedTask;
         }

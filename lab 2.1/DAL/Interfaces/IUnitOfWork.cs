@@ -1,8 +1,16 @@
-﻿namespace BulletinBoard.DAL.Interfaces
+﻿using BulletinBoard.DAL.Interfaces;
+using lab_2._1.DAL.Interfaces;
+using System;
+using System.Threading.Tasks;
+
+namespace lab_2._1.DAL.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {
-        IGenericRepository<T> GetRepository<T>() where T : class;
+        IUserRepository Users { get; }
+        IAdRepository Ads { get; }
+        ICategoryRepository Categories { get; }
+        ITagRepository Tags { get; }
         Task SaveChangesAsync();
     }
 }
