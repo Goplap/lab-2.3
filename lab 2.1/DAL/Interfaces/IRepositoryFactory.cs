@@ -1,8 +1,7 @@
 ﻿namespace BulletinBoard.DAL.Interfaces
 {
-    public interface IUnitOfWork : IDisposable
+    public interface IRepositoryFactory
     {
         IGenericRepository<T> GetRepository<T>() where T : class;
-        Task SaveChangesAsync();
     }
 }

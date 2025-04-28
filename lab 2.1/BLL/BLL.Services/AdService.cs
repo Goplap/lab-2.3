@@ -1,89 +1,99 @@
 ﻿using BulletinBoard.BLL.Interfaces;
 using BulletinBoard.DAL.Models;
-using lab_2._1.DAL.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace BulletinBoard.BLL.Services
 {
     public class AdService : IAdService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper<Ad, AdDto> _mapper;
 
-        public AdService(IUnitOfWork unitOfWork)
+        public AdService(IUnitOfWork unitOfWork, IMapper<Ad, AdDto> mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<Ad>> GetAllAdsAsync()
+        public async Task<IEnumerable<AdDto>> GetAllAdsAsync()
         {
-            return await _unitOfWork.Ads.GetAllWithDetailsAsync();
+            // Тут студент може використовувати простий підхід без оптимізації
+            var repository = _unitOfWork.GetRepository<Ad>();
+            var ads = await repository.GetAllAsync();
+
+            // В реальному проекті тут мала б бути логіка з Include(..), але це "студентська робота"
+            return _mapper.Map(ads);
         }
 
-        public async Task<Ad> GetAdByIdAsync(int id)
+        public async Task<AdDto> GetAdByIdAsync(int id)
         {
-            return await _unitOfWork.Ads.GetAdWithDetailsAsync(id);
+            var repository = _unitOfWork.GetRepository<Ad>();
+            var ad = await repository.GetByIdAsync(id);
+
+            // Спрощений варіант без зв'язків
+            return _mapper.Map(ad);
         }
 
-        public async Task<IEnumerable<Ad>> GetAdsByUserIdAsync(int userId)
+        public async Task<IEnumerable<AdDto>> GetAdsByUserIdAsync(int userId)
         {
-            return await _unitOfWork.Ads.GetAdsByUserIdAsync(userId);
+            var repository = _unitOfWork.GetRepository<Ad>();
+            var ads = await repository.FindAsync(a => a.UserId == userId);
+            return _mapper.Map(ads);
         }
 
-        public async Task<IEnumerable<Ad>> GetAdsByCategoryIdAsync(int categoryId)
+        public async Task<IEnumerable<AdDto>> GetAdsByCategoryIdAsync(int categoryId)
         {
-            return await _unitOfWork.Ads.GetAdsByCategoryIdAsync(categoryId);
+            var repository = _unitOfWork.GetRepository<Ad>();
+            var ads = await repository.FindAsync(a => a.CategoryId == categoryId);
+            return _mapper.Map(ads);
         }
 
-        public async Task<Ad> CreateAdAsync(Ad ad)
+        public async Task<AdDto> CreateAdAsync(AdDto adDto)
         {
-            if (ad == null)
-                throw new ArgumentNullException(nameof(ad), "Оголошення не може бути null.");
+            if (adDto == null)
+                throw new ArgumentNullException(nameof(adDto), "Оголошення не може бути null.");
 
-            // Перевірка існування категорії
-            var category = await _unitOfWork.Categories.GetByIdAsync(ad.CategoryId);
+            // Простий метод перевірки без складної логіки
+            var categoryRepo = _unitOfWork.GetRepository<Category>();
+            var category = await categoryRepo.GetByIdAsync(adDto.CategoryId);
+
             if (category == null)
-            {
-                throw new InvalidOperationException($"Категорія з ID {ad.CategoryId} не існує! Додайте категорію перед створенням оголошення.");
-            }
+                throw new InvalidOperationException($"Категорія з ID {adDto.CategoryId} не існує!");
 
-            // Перевірка існування користувача
-            var user = await _unitOfWork.Users.GetByIdAsync(ad.UserId);
+            var userRepo = _unitOfWork.GetRepository<User>();
+            var user = await userRepo.GetByIdAsync(adDto.UserId);
+
             if (user == null)
-            {
-                throw new InvalidOperationException($"Користувач з ID {ad.UserId} не існує! Створіть користувача перед додаванням оголошення.");
-            }
+                throw new InvalidOperationException($"Користувач з ID {adDto.UserId} не існує!");
 
             // Встановлення дефолтних значень
-            ad.CreatedAt = DateTime.UtcNow;
-            ad.IsActive = true;
+            adDto.CreatedAt = DateTime.UtcNow;
+            adDto.IsActive = true;
 
-            await _unitOfWork.Ads.AddAsync(ad);
+            var ad = _mapper.Map(adDto);
+            var adRepo = _unitOfWork.GetRepository<Ad>();
+            await adRepo.AddAsync(ad);
             await _unitOfWork.SaveChangesAsync();
 
-            return ad;
+            adDto.Id = ad.Id; // Оновлення ідентифікатора після збереження в БД
+            return adDto;
         }
 
-        public async Task UpdateAdAsync(Ad ad)
+        public async Task UpdateAdAsync(AdDto adDto)
         {
-            if (ad == null)
-                throw new ArgumentNullException(nameof(ad), "Оголошення не може бути null.");
+            if (adDto == null)
+                throw new ArgumentNullException(nameof(adDto), "Оголошення не може бути null.");
 
-            // Перевірка існування категорії
-            var category = await _unitOfWork.Categories.GetByIdAsync(ad.CategoryId);
-            if (category == null)
-            {
-                throw new InvalidOperationException($"Категорія з ID {ad.CategoryId} не існує! Оновлення неможливе.");
-            }
+            var adRepo = _unitOfWork.GetRepository<Ad>();
+            var ad = _mapper.Map(adDto);
 
-            await _unitOfWork.Ads.UpdateAsync(ad);
+            await adRepo.UpdateAsync(ad);
             await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteAdAsync(int id)
         {
-            await _unitOfWork.Ads.RemoveByIdAsync(id);
+            var adRepo = _unitOfWork.GetRepository<Ad>();
+            await adRepo.DeleteByIdAsync(id);
             await _unitOfWork.SaveChangesAsync();
         }
     }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BulletinBoard.BLL.Interfaces;
+using BulletinBoard.BLL.Mappers;
 using BulletinBoard.BLL.Services;
 using BulletinBoard.DAL;
 using BulletinBoard.DAL.Models;
+using BulletinBoard.DAL.Repositories;
 using lab_2._1.DAL.Interfaces;
 using lab_2._1.DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -44,23 +46,30 @@ class Program
         }
     }
 
-    static IHost CreateHost() =>
-        Host.CreateDefaultBuilder()
-            .ConfigureServices(services =>
-            {
-                // Реєстрація DbContext - тепер без явного передавання рядка підключення
-                services.AddDbContext<BulletinBoardContext>();
+    static IHost CreateHost(string connectionString) =>
+    Host.CreateDefaultBuilder()
+        .ConfigureServices(services =>
+        {
+            // Реєстрація DbContext
+            services.AddDbContext<BulletinBoardContext>(options =>
+                options.UseSqlServer(connectionString));
 
-                // Реєстрація UnitOfWork
-                services.AddScoped<IUnitOfWork, UnitOfWork>();
+            // Реєстрація UnitOfWork
+            services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 
-                // Реєстрація сервісів
-                services.AddScoped<IAdService, AdService>();
-                services.AddScoped<IUserService, UserService>();
-                services.AddScoped<ICategoryService, CategoryService>();
-                services.AddScoped<ITagService, TagService>();
-            })
-            .Build();
+            // Реєстрація мапперів
+            services.AddScoped<IMapper<User, UserDto>, UserMapper>();
+            services.AddScoped<IMapper<Category, CategoryDto>, CategoryMapper>();
+            services.AddScoped<IMapper<Tag, TagDto>, TagMapper>();
+            services.AddScoped<IMapper<Ad, AdDto>, AdMapper>();
+
+            // Реєстрація сервісів
+            services.AddScoped<IAdService, AdService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ITagService, TagService>();
+        })
+        .Build();
 
     static async Task RunUI(IUserService userService, IAdService adService, ICategoryService categoryService, ITagService tagService)
     {
