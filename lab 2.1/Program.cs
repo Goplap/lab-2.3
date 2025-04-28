@@ -16,10 +16,8 @@ class Program
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
         Console.InputEncoding = System.Text.Encoding.UTF8;
-        var connectionString = "Server=localhost\\SQLEXPRESS;Database=BulletinBoardDB;Trusted_Connection=True;TrustServerCertificate=True;";
-        Console.WriteLine($"Використовую рядок підключення: {connectionString}");
 
-        var host = CreateHost(connectionString);
+        var host = CreateHost();
 
         using (var scope = host.Services.CreateScope())
         {
@@ -46,13 +44,12 @@ class Program
         }
     }
 
-    static IHost CreateHost(string connectionString) =>
+    static IHost CreateHost() =>
         Host.CreateDefaultBuilder()
             .ConfigureServices(services =>
             {
-                // Реєстрація DbContext
-                services.AddDbContext<BulletinBoardContext>(options =>
-                    options.UseSqlServer(connectionString));
+                // Реєстрація DbContext - тепер без явного передавання рядка підключення
+                services.AddDbContext<BulletinBoardContext>();
 
                 // Реєстрація UnitOfWork
                 services.AddScoped<IUnitOfWork, UnitOfWork>();

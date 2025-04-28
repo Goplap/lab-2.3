@@ -1,8 +1,5 @@
 ﻿using BulletinBoard.DAL;
-using BulletinBoard.DAL.Repositories;
 using lab_2._1.DAL.Interfaces;
-using System;
-using System.Threading.Tasks;
 
 namespace lab_2._1.DAL.Repositories
 {
