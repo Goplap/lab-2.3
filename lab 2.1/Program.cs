@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BulletinBoard.BLL.Interfaces;
-using BulletinBoard.BLL.Mappers;
 using BulletinBoard.BLL.Models;
 using BulletinBoard.BLL.Services;
 using BulletinBoard.DAL;
-using BulletinBoard.DAL.Models;
-using BulletinBoard.DAL.Repositories;
-using lab_2._1.DAL.Interfaces;
-using lab_2._1.DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -51,31 +46,15 @@ class Program
     Host.CreateDefaultBuilder()
         .ConfigureServices(services =>
         {
-            // Use the connection string from DbContext
             string connectionString = "Server=localhost\\SQLEXPRESS;Database=BulletinBoardDB;Trusted_Connection=True;TrustServerCertificate=True;";
 
             // Реєстрація DbContext
             services.AddDbContext<BulletinBoardContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            // Реєстрація репозиторіїв
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IAdRepository, AdRepository>();
-            services.AddScoped<ICategoryRepository, CategoryRepository>();
-            services.AddScoped<ITagRepository, TagRepository>();
-
-            // Реєстрація UnitOfWork
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-            // Реєстрація мапперів
-            services.AddScoped<IMapper<User, UserDto>, UserMapper>();
-            services.AddScoped<IMapper<Category, CategoryDto>, CategoryMapper>();
-            services.AddScoped<IMapper<Tag, TagDto>, TagMapper>();
-            services.AddScoped<IMapper<Ad, AdDto>, AdMapper>();
-
             // Реєстрація сервісів
-            services.AddScoped<IAdService, AdService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAdService, AdService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<ITagService, TagService>();
         })
@@ -83,22 +62,24 @@ class Program
 
     static async Task RunUI(IUserService userService, IAdService adService, ICategoryService categoryService, ITagService tagService)
     {
-        User currentUser = null;
+        UserDto currentUser = null;
 
-        // Спочатку перевіримо, чи є хоча б один користувач, і створимо його, якщо потрібно
         try
         {
             var users = await userService.GetAllUsersAsync();
-
             if (!users.GetEnumerator().MoveNext()) // якщо немає користувачів
             {
                 Console.WriteLine("Створення першого користувача...");
-                currentUser = await userService.CreateUserAsync(new User
+
+                // Fix 1: Add password as separate parameter
+                var userDto = new UserDto
                 {
                     Username = "admin",
-                    Email = "admin@example.com",
-                    PasswordHash = "admin"
-                });
+                    Email = "admin@example.com"
+                };
+                string password = "admin";
+
+                currentUser = await userService.CreateUserAsync(userDto, password);
                 Console.WriteLine($"Створено користувача: {currentUser.Username}");
             }
             else
@@ -141,13 +122,14 @@ class Program
                         Console.Write("Пароль: ");
                         string password = Console.ReadLine();
 
-                        var newUser = await userService.CreateUserAsync(new User
+                        // Fix 2: Removed PasswordHash from UserDto and passed as separate parameter
+                        var userDto = new UserDto
                         {
                             Username = name,
-                            Email = email,
-                            PasswordHash = password
-                        });
+                            Email = email
+                        };
 
+                        var newUser = await userService.CreateUserAsync(userDto, password);
                         Console.WriteLine($"✅ Користувач '{name}' доданий з ID: {newUser.Id}!");
                     }
                     catch (Exception ex)
@@ -165,9 +147,9 @@ class Program
 
                     try
                     {
-                        // Показуємо доступні категорії
                         var categories = await categoryService.GetAllCategoriesAsync();
-                        Console.WriteLine("\nДоступні категорії:"); foreach (var cat in categories)
+                        Console.WriteLine("\nДоступні категорії:");
+                        foreach (var cat in categories)
                         {
                             Console.WriteLine($"{cat.Id}. {cat.Name}");
                         }
@@ -194,7 +176,6 @@ class Program
 
                         var newAd = await adService.CreateAdAsync(adDto);
                         Console.WriteLine($"✅ Оголошення '{title}' додане з ID: {newAd.Id}!");
-
                     }
                     catch (Exception ex)
                     {
@@ -322,20 +303,11 @@ class Program
                         // Перевіряємо чи користувач є автором оголошення
                         if (adToDelete.UserId != currentUser.Id)
                         {
-                            Console.WriteLine("❌ Ви можете видаляти тільки власні оголошення!");
+                            Console.WriteLine("❌ Ви можете видаляти тільки свої оголошення!");
                             break;
                         }
-
-                        Console.Write($"Ви впевнені, що хочете видалити оголошення '{adToDelete.Title}'? (так/ні): ");
-                        if (Console.ReadLine().ToLower() == "так")
-                        {
-                            await adService.DeleteAdAsync(adIdToDelete);
-                            Console.WriteLine("✅ Оголошення видалене!");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Видалення скасовано.");
-                        }
+                        await adService.DeleteAdAsync(adToDelete.Id);
+                        Console.WriteLine("✅ Оголошення видалено!");
                     }
                     catch (Exception ex)
                     {
@@ -346,29 +318,17 @@ class Program
                 case "7": // Додати категорію
                     try
                     {
-                        // Показуємо існуючі категорії
-                        var existingCategories = await categoryService.GetAllCategoriesAsync();
-                        Console.WriteLine("\nІснуючі категорії:");
-                        foreach (var cat in existingCategories)
-                        {
-                            Console.WriteLine($"{cat.Id}. {cat.Name}");
-                        }
-
-                        Console.Write("\nВведіть назву нової категорії: ");
+                        Console.Write("Назва категорії: ");
                         string categoryName = Console.ReadLine();
 
-                        Console.Write("Введіть ID батьківської категорії (або 0, якщо це головна категорія): ");
-                        int.TryParse(Console.ReadLine(), out int parentId);
-
-                        Category newCategory = new Category { Name = categoryName };
-
-                        if (parentId > 0)
+                        // Fix 3: Make sure we're using CategoryDto correctly
+                        var categoryDto = new CategoryDto
                         {
-                            newCategory.ParentCategoryId = parentId;
-                        }
+                            Name = categoryName
+                        };
 
-                        var category = await categoryService.CreateCategoryAsync(newCategory);
-                        Console.WriteLine($"✅ Категорія '{categoryName}' додана з ID: {category.Id}!");
+                        var newCategory = await categoryService.CreateCategoryAsync(categoryDto);
+                        Console.WriteLine($"✅ Категорія '{categoryName}' додана з ID: {newCategory.Id}!");
                     }
                     catch (Exception ex)
                     {
@@ -379,20 +339,17 @@ class Program
                 case "8": // Показати категорії
                     try
                     {
-                        var allCategories = await categoryService.GetAllCategoriesAsync();
+                        var categories = await categoryService.GetAllCategoriesAsync();
                         Console.WriteLine("\n=== СПИСОК КАТЕГОРІЙ ===");
-                        foreach (var category in allCategories)
+                        foreach (var category in categories)
                         {
-                            string parentInfo = category.ParentCategoryId.HasValue
-                                ? $" (Підкатегорія {category.ParentCategoryId})"
-                                : "";
-                            Console.WriteLine($"ID: {category.Id}, Назва: {category.Name}{parentInfo}");
+                            Console.WriteLine($"ID: {category.Id}, Назва: {category.Name}");
                         }
-                        Console.WriteLine("=======================");
+                        Console.WriteLine("=========================");
                     }
                     catch (Exception ex)
                     {
-                        LogError("Помилка при отриманні списку категорій", ex);
+                        LogError("Помилка при отриманні категорій", ex);
                     }
                     break;
 
@@ -406,18 +363,26 @@ class Program
                             Console.WriteLine($"{user.Id}. {user.Username} ({user.Email})");
                         }
 
-                        Console.Write("Введіть ID користувача: ");
+                        Console.Write("Введіть ID користувача (або 0 для скасування): ");
                         if (int.TryParse(Console.ReadLine(), out int userId))
                         {
-                            var user = await userService.GetUserByIdAsync(userId);
-                            if (user != null)
+                            if (userId == 0)
                             {
-                                currentUser = user;
-                                Console.WriteLine($"✅ Поточний користувач змінений на {user.Username}");
+                                currentUser = null;
+                                Console.WriteLine("Вибір користувача скасовано.");
                             }
                             else
                             {
-                                Console.WriteLine("❌ Користувача з таким ID не знайдено!");
+                                var user = await userService.GetUserByIdAsync(userId);
+                                if (user != null)
+                                {
+                                    currentUser = user;
+                                    Console.WriteLine($"✅ Поточний користувач змінений на {user.Username}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("❌ Користувача з таким ID не знайдено!");
+                                }
                             }
                         }
                         else
@@ -431,12 +396,11 @@ class Program
                     }
                     break;
 
-                case "0": // Вийти
-                    Console.WriteLine("До побачення!");
+                case "0": // Вихід
                     return;
 
                 default:
-                    Console.WriteLine("❌ Невірний вибір!");
+                    Console.WriteLine("❌ Некоректний вибір!");
                     break;
             }
         }
@@ -444,11 +408,7 @@ class Program
 
     static void LogError(string message, Exception ex)
     {
-        Console.WriteLine($"❌ {message}");
-        Console.WriteLine($"Помилка: {ex.Message}");
-        if (ex.InnerException != null)
-        {
-            Console.WriteLine($"Деталі: {ex.InnerException.Message}");
-        }
+        Console.WriteLine($"{message}: {ex.Message}");
+        Console.WriteLine(ex.StackTrace);
     }
 }

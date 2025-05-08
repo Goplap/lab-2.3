@@ -1,16 +1,15 @@
-﻿using BulletinBoard.DAL.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using BulletinBoard.BLL.Models;
 
 namespace BulletinBoard.BLL.Interfaces
 {
     public interface ICategoryService
     {
-        Task<IEnumerable<Category>> GetAllCategoriesAsync();
-        Task<Category> GetCategoryByIdAsync(int id);
-        Task<IEnumerable<Category>> GetCategoriesWithSubcategoriesAsync();
-        Task<Category> CreateCategoryAsync(Category category);
-        Task UpdateCategoryAsync(Category category);
+        Task<CategoryDto> CreateCategoryAsync(CategoryDto categoryDto);
+        Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync();
+        Task<CategoryDto> GetCategoryByIdAsync(int id);
+        Task UpdateCategoryAsync(CategoryDto categoryDto);
         Task DeleteCategoryAsync(int id);
     }
 }

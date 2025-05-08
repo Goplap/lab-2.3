@@ -1,10 +1,11 @@
 ﻿using BulletinBoard.BLL.Interfaces;
+using BulletinBoard.BLL.Models;
 using BulletinBoard.DAL.Models;
-using BulletinBoard.BLL.Interfaces;
+using lab_2._1.DAL.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
-using lab_2._1.DAL.Interfaces;
 
 namespace BulletinBoard.BLL.Services
 {
@@ -17,41 +18,63 @@ namespace BulletinBoard.BLL.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
-            return await _unitOfWork.Users.GetAllAsync();
+            var users = await _unitOfWork.Users.GetAllAsync();
+            var result = new List<UserDto>();
+            foreach (var user in users)
+            {
+                result.Add(MapToDto(user));
+            }
+            return result;
         }
 
-        public async Task<User> GetUserByIdAsync(int id)
+        public async Task<UserDto> GetUserByIdAsync(int id)
         {
-            return await _unitOfWork.Users.GetByIdAsync(id);
+            var user = await _unitOfWork.Users.GetByIdAsync(id);
+            return user == null ? null : MapToDto(user);
         }
 
-        public async Task<User> GetUserByEmailAsync(string email)
+        public async Task<UserDto> GetUserByEmailAsync(string email)
         {
-            return await _unitOfWork.Users.GetByEmailAsync(email);
+            var user = await _unitOfWork.Users.GetByEmailAsync(email);
+            return user == null ? null : MapToDto(user);
         }
 
-        public async Task<User> CreateUserAsync(User user)
+        public async Task<UserDto> CreateUserAsync(UserDto userDto, string? password)
         {
-            if (user == null)
-                throw new ArgumentNullException(nameof(user), "Користувач не може бути null.");
+            if (userDto == null)
+                throw new ArgumentNullException(nameof(userDto));
 
-            // Встановлення дефолтного значення для паролю, якщо він не вказаний
-            user.PasswordHash ??= "";
+            var user = new User
+            {
+                Username = userDto.Username,
+                Email = userDto.Email,
+                PasswordHash = HashPassword(password),
+                RegisteredAt = DateTime.UtcNow,
+                IsActive = true
+            };
 
             await _unitOfWork.Users.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
-            return user;
+            return MapToDto(user);
         }
 
-        public async Task UpdateUserAsync(User user)
+        public async Task UpdateUserAsync(UserDto userDto)
         {
-            if (user == null)
-                throw new ArgumentNullException(nameof(user), "Користувач не може бути null.");
+            if (userDto == null)
+                throw new ArgumentNullException(nameof(userDto));
 
-            await _unitOfWork.Users.UpdateAsync(user);
+            var existingUser = await _unitOfWork.Users.GetByIdAsync(userDto.Id);
+            if (existingUser == null)
+                throw new InvalidOperationException("Користувача не знайдено.");
+
+            existingUser.Username = userDto.Username;
+            existingUser.Email = userDto.Email;
+            existingUser.IsActive = userDto.IsActive;
+
+            await _unitOfWork.Users.UpdateAsync(existingUser);
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -59,6 +82,29 @@ namespace BulletinBoard.BLL.Services
         {
             await _unitOfWork.Users.RemoveByIdAsync(id);
             await _unitOfWork.SaveChangesAsync();
+        }
+
+        // Приватні допоміжні методи
+
+        private static string HashPassword(string? password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+                return string.Empty;
+
+            // Простий Base64 — лише для прикладу
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(password));
+        }
+
+        private static UserDto MapToDto(User user)
+        {
+            return new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                RegisteredAt = user.RegisteredAt,
+                IsActive = user.IsActive
+            };
         }
     }
 }
