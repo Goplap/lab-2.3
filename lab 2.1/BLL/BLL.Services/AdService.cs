@@ -48,7 +48,7 @@ namespace BulletinBoard.BLL.Services
             if (adDto == null)
                 throw new ArgumentNullException(nameof(adDto), "Оголошення не може бути null.");
 
-            // Validations
+            // Validations 
             var category = await _unitOfWork.Categories.GetByIdAsync(adDto.CategoryId);
             if (category == null)
                 throw new InvalidOperationException($"Категорія з ID {adDto.CategoryId} не існує!");
