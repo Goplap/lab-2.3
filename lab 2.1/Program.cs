@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
 using BulletinBoard.BLL.Interfaces;
+using BulletinBoard.BLL.Mappers;
 using BulletinBoard.BLL.Models;
 using BulletinBoard.BLL.Services;
 using BulletinBoard.DAL;
+using BulletinBoard.DAL.Models;
+using BulletinBoard.DAL.Repositories;
+using lab_2._1.DAL.Interfaces;
+using lab_2._1.DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -48,9 +53,23 @@ class Program
         {
             string connectionString = "Server=localhost\\SQLEXPRESS;Database=BulletinBoardDB;Trusted_Connection=True;TrustServerCertificate=True;";
 
-            // Реєстрація DbContext
             services.AddDbContext<BulletinBoardContext>(options =>
                 options.UseSqlServer(connectionString));
+
+            // Реєстрація репозиторіїв
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IAdRepository, AdRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<ITagRepository, TagRepository>();
+
+            // Реєстрація Unit of Work
+            services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+
+            // Реєстрація мапперів
+            services.AddScoped<IMapper<Ad, AdDto>, AdMapper>();
+            services.AddScoped<IMapper<User, UserDto>, UserMapper>();
+            services.AddScoped<IMapper<Category, CategoryDto>, CategoryMapper>();
+            services.AddScoped<IMapper<Tag, TagDto>, TagMapper>();
 
             // Реєстрація сервісів
             services.AddScoped<IUserService, UserService>();

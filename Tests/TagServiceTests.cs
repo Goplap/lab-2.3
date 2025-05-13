@@ -21,6 +21,14 @@ namespace BulletinBoard.BLL.Tests.Services
 
             // Setup AutoFixture
             _fixture = new Fixture();
+
+            // Виправлення: уникнути помилок через рекурсивні об'єкти
+            _fixture.Behaviors
+                .OfType<ThrowingRecursionBehavior>()
+                .ToList()
+                .ForEach(b => _fixture.Behaviors.Remove(b));
+
+            _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         }
 
         [Fact]
