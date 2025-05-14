@@ -22,6 +22,13 @@ namespace BulletinBoard.BLL.Tests.Services
 
             // Setup AutoFixture
             _fixture = new Fixture();
+
+            _fixture.Behaviors
+                .OfType<ThrowingRecursionBehavior>()
+                .ToList()
+                .ForEach(b => _fixture.Behaviors.Remove(b));
+            _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
         }
 
         [Fact]

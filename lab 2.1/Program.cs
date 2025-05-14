@@ -52,30 +52,7 @@ class Program
         .ConfigureServices(services =>
         {
             string connectionString = "Server=localhost\\SQLEXPRESS;Database=BulletinBoardDB;Trusted_Connection=True;TrustServerCertificate=True;";
-
-            services.AddDbContext<BulletinBoardContext>(options =>
-                options.UseSqlServer(connectionString));
-
-            // Реєстрація репозиторіїв
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IAdRepository, AdRepository>();
-            services.AddScoped<ICategoryRepository, CategoryRepository>();
-            services.AddScoped<ITagRepository, TagRepository>();
-
-            // Реєстрація Unit of Work
-            services.AddScoped<IUnitOfWork, EfUnitOfWork>();
-
-            // Реєстрація мапперів
-            services.AddScoped<IMapper<Ad, AdDto>, AdMapper>();
-            services.AddScoped<IMapper<User, UserDto>, UserMapper>();
-            services.AddScoped<IMapper<Category, CategoryDto>, CategoryMapper>();
-            services.AddScoped<IMapper<Tag, TagDto>, TagMapper>();
-
-            // Реєстрація сервісів
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IAdService, AdService>();
-            services.AddScoped<ICategoryService, CategoryService>();
-            services.AddScoped<ITagService, TagService>();
+            services.AddApplicationServices(connectionString);
         })
         .Build();
 
