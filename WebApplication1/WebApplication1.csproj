@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\lab 2.1\lab 2.2.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DAL">
+      <HintPath>..\..\..\..\лаб 2.1\DAL\DAL\bin\Debug\net8.0\DAL.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
