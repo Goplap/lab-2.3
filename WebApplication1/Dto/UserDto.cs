@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BulletinBoard.BLL.Models
+namespace BulletinBoard.WebApplication.Models
 {
     public class UserDto
     {

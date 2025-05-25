@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWindowsForms>true</UseWindowsForms>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\BLL\BLL.csproj" />
+		<ProjectReference Include="..\lab 2.1\lab 2.2.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="DAL">
+			<HintPath>..\..\..\..\лаб 2.1\DAL\DAL\bin\Debug\net8.0\DAL.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+</Project>

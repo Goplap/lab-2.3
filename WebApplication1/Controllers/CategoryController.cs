@@ -40,8 +40,8 @@ namespace BulletinBoard.WebAPI.Controllers
         }
 
         // POST: api/Categories
-        [HttpPost]
-        public async Task<ActionResult<CategoryDto>> PostCategory(CategoryDto category)
+        [HttpPost("Create")]
+        public async Task<ActionResult<CategoryDto>> PostCategory([FromBody]CategoryDto category)
         {
             var createdCategory = await _categoryService.CreateCategoryAsync(category);
 

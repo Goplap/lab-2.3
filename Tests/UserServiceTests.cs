@@ -1,10 +1,10 @@
 ﻿using AutoFixture;
-using BulletinBoard.BLL.Models;
 using BulletinBoard.BLL.Services;
 using BulletinBoard.DAL.Models;
 using lab_2._1.DAL.Interfaces;
+using BulletinBoard.WebApplication.Models;
 using NSubstitute;
-using Xunit;
+
 
 namespace BulletinBoard.BLL.Tests.Services
 {
@@ -31,8 +31,13 @@ namespace BulletinBoard.BLL.Tests.Services
 
         }
 
+        public Task GetAllUsersAsync_ShouldReturnAllUserDtos()
+        {
+            return GetAllUsersAsync_ShouldReturnAllUserDtos(_userService);
+        }
+
         [Fact]
-        public async Task GetAllUsersAsync_ShouldReturnAllUserDtos()
+        public async Task GetAllUsersAsync_ShouldReturnAllUserDtos(UserService _userService)
         {
             // Arrange
             var users = _fixture.CreateMany<User>(3).ToList();
@@ -128,9 +133,10 @@ namespace BulletinBoard.BLL.Tests.Services
         [Fact]
         public async Task UpdateUserAsync_WithValidData_ShouldUpdateUser()
         {
-            // Arrange
             var userDto = _fixture.Create<UserDto>();
-            var existingUser = _fixture.Create<User>();
+            var existingUser = _fixture.Build<User>()
+                .With(u => u.Id, userDto.Id) // ID однаковий
+                .Create();
 
             _unitOfWork.Users.GetByIdAsync(userDto.Id).Returns(existingUser);
 

@@ -1,6 +1,6 @@
 ﻿// AdsController.cs
 using BulletinBoard.BLL.Interfaces;
-using BulletinBoard.BLL.Models;
+using BulletinBoard.WebApplication.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;

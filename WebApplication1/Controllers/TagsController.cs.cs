@@ -1,6 +1,7 @@
 ﻿// TagsController.cs
 using BulletinBoard.BLL.Interfaces;
 using BulletinBoard.DAL.Models;
+using BulletinBoard.WebApplication.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;

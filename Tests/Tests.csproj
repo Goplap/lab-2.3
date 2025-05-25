@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\lab 2.1\lab 2.2.csproj" />
+    <ProjectReference Include="..\WebApplication1\WebApplication1.csproj" />
   </ItemGroup>
 
   <ItemGroup>
